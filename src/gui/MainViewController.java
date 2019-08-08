@@ -3,6 +3,7 @@ package gui;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 
 import application.Main;
 import gui.util.Alerts;
@@ -34,12 +35,19 @@ public class MainViewController implements Initializable{
 	
 	@FXML
 	public void onMenuItemDepartmentAction() {
-		loadView2("/gui/DepartmentList.fxml");
+		//parâmetro com função de inicialização com expressão lambda
+		//ação de inicialização do controller DepartmentListController
+		loadView("/gui/DepartmentList.fxml", (DepartmentListController controller) -> {
+			controller.setDepartmentService(new DepartmentService());
+			controller.updateTableView();
+			
+		});
 	}
 	
 	@FXML
 	public void onMenuItemAboutAction() {
-		loadView("/gui/About.fxml");
+		//também terá uma ação de inicialização, porém como não tem nada coloco x que leva nada
+		loadView("/gui/About.fxml", x -> {});
 	}
 
 	//método da interface initialize
@@ -48,8 +56,9 @@ public class MainViewController implements Initializable{
 	
 	}
 	
-	//synchronized garante processamento não seja interrompido
-	private synchronized void loadView(String absoluteName) {
+	//synchronized garante processamento não seja interrompido. Interface funcional Consumer com nome Ação de inicialização
+	//função loadView agora é função genérica tipo T generics. Parametrização Consumer<T>
+	private synchronized <T> void loadView(String absoluteName, Consumer<T> initializingAction) {
 		try {
 			//carregar tela
 			FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
@@ -72,38 +81,19 @@ public class MainViewController implements Initializable{
 			//add uma coleção dos filhos do newVBox
 			mainVBox.getChildren().addAll(newVBox.getChildren());
 			
+			//essas duas linhas abaixo executam função passada como argumento no loadView 
+			//Ativar função passada como parâmetro. Resulado do getController vai para variável tipo T
+			T controller = loader.getController();
+			
+			//para executar a ação initializingAction
+			initializingAction.accept(controller);
+			
 		}
 		catch(IOException e) {
 			Alerts.showAlert("IO Exception", "Error loading view", e.getMessage(), AlertType.ERROR);
 		}	
 	}
-	private synchronized void loadView2(String absoluteName) {
-		try {
-			//loader obj usado para carregar view
-			FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
-			VBox newVBox = loader.load();
-			
-			Scene mainScene = Main.getMainScene();
-			
-			VBox mainVBox = (VBox) ((ScrollPane) mainScene.getRoot()).getContent();
-			
-			Node mainMenu = mainVBox.getChildren().get(0);
-			
-			mainVBox.getChildren().clear();
-			mainVBox.getChildren().add(mainMenu);
-			mainVBox.getChildren().addAll(newVBox.getChildren());
-			
-			//loader pode carregar view ou acessar controller. Pegar uma referencia para o controller dessa view
-			DepartmentListController controller = loader.getController();
-			
-			//chamando operações. Injentar dependencia do service lá no controller
-			controller.setDepartmentService(new DepartmentService());
-			controller.updateTableView();
-		}
-		catch(IOException e) {
-			Alerts.showAlert("IO Exception", "Error loading view", e.getMessage(), AlertType.ERROR);
-		}
-	}
+	
 	
 
 }
