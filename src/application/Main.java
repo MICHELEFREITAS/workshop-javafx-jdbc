@@ -10,6 +10,9 @@ import javafx.scene.control.ScrollPane;
 import javafx.stage.Stage;
 
 public class Main extends Application {
+	
+	//vou guardar referencia nesse atributo
+	private static Scene mainScene;
 
 	@Override
 	public void start(Stage primaryStage) {
@@ -22,7 +25,7 @@ public class Main extends Application {
 			scrollPane.setFitToWidth(true);
 			
 			// Scene principal instanciado
-			Scene mainScene = new Scene(scrollPane);
+			mainScene = new Scene(scrollPane);
 			// primaryStage é o palco da Scene, seta como principal, depois define título para o palco e mostra palco.
 			primaryStage.setScene(mainScene);
 			primaryStage.setTitle("Sample JavaFX application");
@@ -30,6 +33,11 @@ public class Main extends Application {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	//método para pegar referencia
+	public static Scene getMainScene() {
+		return mainScene;
 	}
 
 	public static void main(String[] args) {
