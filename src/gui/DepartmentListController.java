@@ -55,7 +55,7 @@ public class DepartmentListController implements Initializable{
 		//pega refencia do stage atual e passa para criar janela formulário
 		Stage parentStage = Utils.currentStage(event);
 		
-		Department obj = new Department();//depart. vazio
+		Department obj = new Department();//depart. vazio Padrao MVC
 		
 		//obj do departament, nome da tela que vai carregar e Stage da janela atual
 		createDialogForm(obj, "/gui/DepartmentForm.fxml", parentStage);
@@ -116,6 +116,8 @@ public class DepartmentListController implements Initializable{
 			DepartmentFormController controller = loader.getController();
 			
 			controller.setDepartment(obj);
+			//injentar manualmente dependencia
+			controller.setDepartmentService(new DepartmentService());
 			controller.updateFormData();//carregar dados do obj no formulário
 			
 			

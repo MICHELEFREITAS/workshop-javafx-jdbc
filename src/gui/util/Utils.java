@@ -13,5 +13,15 @@ public class Utils {
 		return (Stage) ((Node) event.getSource()).getScene().getWindow();
 		
 	}
+	
+	public static Integer tryParseToInt(String str) {
+		try {
+			//converte o número para inteiro e retorna
+			return Integer.parseInt(str);
+		}//se acontecer problema na conversão
+		catch(NumberFormatException e){
+			return null;
+		}
+	}
 
 }
