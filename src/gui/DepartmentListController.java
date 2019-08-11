@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 import application.Main;
+import gui.listeners.DataChangeListener;
 import gui.util.Alerts;
 import gui.util.Utils;
 import javafx.collections.FXCollections;
@@ -26,7 +27,7 @@ import javafx.stage.Stage;
 import model.entities.Department;
 import model.services.DepartmentService;
 
-public class DepartmentListController implements Initializable{
+public class DepartmentListController implements Initializable, DataChangeListener{
 	
 	//dependência com acoplamento forte
 	private DepartmentService service;
@@ -118,6 +119,8 @@ public class DepartmentListController implements Initializable{
 			controller.setDepartment(obj);
 			//injentar manualmente dependencia
 			controller.setDepartmentService(new DepartmentService());
+			//inscreve para ele mesmo receber o evento
+			controller.subscribeDataChangeListener(this);
 			controller.updateFormData();//carregar dados do obj no formulário
 			
 			
@@ -133,5 +136,11 @@ public class DepartmentListController implements Initializable{
 			Alerts.showAlert("IOException", "Error loading view", e.getMessage(), AlertType.ERROR);
 		}
 		
+	}
+
+	//quando disparar função que os dados foram alterados chamar função update
+	@Override
+	public void onDataChanged() {
+		updateTableView();		
 	}
 }

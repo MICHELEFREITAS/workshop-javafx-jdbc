@@ -1,9 +1,11 @@
 package gui;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
-
 import db.DbException;
+import gui.listeners.DataChangeListener;
 import gui.util.Alerts;
 import gui.util.Constraints;
 import gui.util.Utils;
@@ -23,6 +25,9 @@ public class DepartmentFormController implements Initializable{
 	private Department entity;
 	
 	private DepartmentService service;
+	
+	//permiter outros objetos se inscreverem nessa lista e receber o evento
+	private List<DataChangeListener> dataChangeListeners = new ArrayList<>();
 
 	@FXML
 	private TextField txtId;
@@ -49,6 +54,11 @@ public class DepartmentFormController implements Initializable{
 		this.service = service;
 	}
 	
+	//método inscrever o evento na lista ou add na lista
+	public void subscribeDataChangeListener(DataChangeListener listener) {
+		dataChangeListeners.add(listener);		
+	}
+	
 	@FXML
 	public void onBtSaveAction(ActionEvent event) {
 		//caso tenha esquecido injetar dependencia
@@ -64,6 +74,8 @@ public class DepartmentFormController implements Initializable{
 			//salva no BD
 			service.saveOrUpdate(entity);
 			
+			notifyDataChangeListeners();
+			
 			//pega referencia janela atual e fecha
 			Utils.currentStage(event).close();
 		}
@@ -74,6 +86,14 @@ public class DepartmentFormController implements Initializable{
 		
 	}
 	
+	//notificar os DataChangeListeners vai ser executar onDataChanged em cada um dos listener
+	private void notifyDataChangeListeners() {
+		for(DataChangeListener listener : dataChangeListeners) {
+			listener.onDataChanged();
+		}
+		
+	}
+
 	//getFormData pega os dados da caixinha do formulário e instanciar um departamento e retorna novo obj
 	private Department getFormData() {
 		Department obj = new Department();
