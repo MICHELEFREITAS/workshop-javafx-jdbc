@@ -9,6 +9,7 @@ import application.Main;
 import gui.listeners.DataChangeListener;
 import gui.util.Alerts;
 import gui.util.Utils;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -18,6 +19,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -42,6 +44,9 @@ public class DepartmentListController implements Initializable, DataChangeListen
 	
 	@FXML
 	private TableColumn<Department, String> tableColumnName;
+	
+	@FXML
+	private TableColumn<Department, Department> tableColumnEDIT;
 	
 	@FXML
 	private Button btNew;
@@ -101,6 +106,8 @@ public class DepartmentListController implements Initializable, DataChangeListen
 		obsList = FXCollections.observableArrayList(list);
 		
 		tableViewDepartment.setItems(obsList);
+		
+		initEditButtons();//acrescenta novo botão com texto edit em cada linha da tabela
 	}
 
 	//método recebe como parametro uma referência para o Stage da janela que criou a janela de diálogo
@@ -142,5 +149,32 @@ public class DepartmentListController implements Initializable, DataChangeListen
 	@Override
 	public void onDataChanged() {
 		updateTableView();		
+	}
+	
+	private void initEditButtons() {
+		tableColumnEDIT.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue()));
+		//Cria um obj específico CellFactory responsável instanciar os botões e configurar o evento do botão
+		tableColumnEDIT.setCellFactory(param -> new TableCell<Department, Department>(){
+			private final Button button = new Button("edit");
+			
+			@Override
+			protected void updateItem(Department obj, boolean empty) {
+				super.updateItem(obj, empty);
+				
+				if(obj == null) {
+					setGraphic(null);
+					return;
+				}
+				
+				setGraphic(button);
+				//na conf do evento chama o método para criar janela formulário
+				//passa o obj que é o departamento da linha de edição que for clicada
+				button.setOnAction(
+						event -> createDialogForm(
+								obj, "/gui/DepartmentForm.fxml", Utils.currentStage(event)));
+			} 
+			
+		});
+		
 	}
 }
