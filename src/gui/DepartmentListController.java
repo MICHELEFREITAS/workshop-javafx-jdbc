@@ -3,9 +3,11 @@ package gui;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import application.Main;
+import db.DbIntegrityException;
 import gui.listeners.DataChangeListener;
 import gui.util.Alerts;
 import gui.util.Utils;
@@ -19,6 +21,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -47,6 +50,9 @@ public class DepartmentListController implements Initializable, DataChangeListen
 	
 	@FXML
 	private TableColumn<Department, Department> tableColumnEDIT;
+	
+	@FXML
+	private TableColumn<Department, Department> tableColumnRemove;
 	
 	@FXML
 	private Button btNew;
@@ -107,7 +113,9 @@ public class DepartmentListController implements Initializable, DataChangeListen
 		
 		tableViewDepartment.setItems(obsList);
 		
-		initEditButtons();//acrescenta novo botão com texto edit em cada linha da tabela
+		//acrescenta novo botão com texto edit em cada linha da tabela
+		initEditButtons();
+		initRemoveButtons();
 	}
 
 	//método recebe como parametro uma referência para o Stage da janela que criou a janela de diálogo
@@ -176,5 +184,49 @@ public class DepartmentListController implements Initializable, DataChangeListen
 			
 		});
 		
+	}
+	
+	//método cria botão remove em cada linha. 
+	private void initRemoveButtons() {
+		tableColumnRemove.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue()));
+		tableColumnRemove.setCellFactory(param -> new TableCell<Department, Department>() {
+			private final Button button = new Button("remove");
+			
+			@Override
+			protected void updateItem(Department obj, boolean empty) {
+				super.updateItem(obj, empty);
+				
+				if(obj == null) {
+					setGraphic(null);
+					return;
+				}
+				//para cada linha se apertar botão chama o método removeEntity
+				setGraphic(button);
+				button.setOnAction(event -> removeEntity(obj));
+			}
+		});
+	}
+
+	//para remover uma entidade
+	private void removeEntity(Department obj) {
+		//Variável result recebe resposta do Alerts. Confirmar se tem certeza que quer deletar o departamento selecionado
+		Optional<ButtonType> result = Alerts.showConfirmation("Confirmation", "Are you sure to delete?");
+		
+		//.get acessar obj detro do Optional
+		//testar se obj que está dentro dele é igual a OK
+		if(result.get() == ButtonType.OK) {
+			if(service == null) {
+				//programador esqueceu de injetar, lança exceção
+				throw new IllegalStateException("Service was null");
+			}
+			try {
+				//remove a atualiza dados na tabela
+			   service.remove(obj);
+			   updateTableView();
+			}
+			catch(DbIntegrityException e){
+				Alerts.showAlert("Error removing object", null, e.getMessage(), AlertType.ERROR);
+			}
+		}
 	}
 }
