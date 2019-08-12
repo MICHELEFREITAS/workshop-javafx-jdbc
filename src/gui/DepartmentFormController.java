@@ -3,7 +3,10 @@ package gui;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
+
 import db.DbException;
 import gui.listeners.DataChangeListener;
 import gui.util.Alerts;
@@ -17,6 +20,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import model.entities.Department;
+import model.exceptions.ValidationException;
 import model.services.DepartmentService;
 
 public class DepartmentFormController implements Initializable{
@@ -79,6 +83,10 @@ public class DepartmentFormController implements Initializable{
 			//pega referencia janela atual e fecha
 			Utils.currentStage(event).close();
 		}
+		//se acontecer essa exceção
+		catch(ValidationException e) {
+			setErrorMessages(e.getErros());
+		}
 		catch(DbException e) {
 			Alerts.showAlert("Error saving object", null, e.getMessage(), AlertType.ERROR);
 		}
@@ -97,10 +105,23 @@ public class DepartmentFormController implements Initializable{
 	//getFormData pega os dados da caixinha do formulário e instanciar um departamento e retorna novo obj
 	private Department getFormData() {
 		Department obj = new Department();
+		
+		ValidationException exception = new ValidationException("Validation error");
+		
 		//converte para inteiro o valor, se não for int retorna null
 		obj.setId(Utils.tryParseToInt(txtId.getText()));
 		
+		//trim - eliminar qualquer espaço em branco início ou final
+		//verficiando e add possível erro que pode acontecer
+		if(txtName.getText() == null || txtName.getText().trim().equals("")) {
+			exception.addError("name", "Field can't be empty");
+		}
 		obj.setName(txtName.getText());
+		
+		//lança exception caso exista algum error
+		if(exception.getErros().size() > 0) {
+			throw exception;
+		}
 		
 		return obj;
 	}
@@ -131,6 +152,20 @@ public class DepartmentFormController implements Initializable{
 		//Caixa de textro trabalha com String, por isso converter Id para String
 		txtId.setText(String.valueOf(entity.getId()));
 		txtName.setText(entity.getName());
+		
+	}
+	
+	//coleção carrega os erros. Preencher nas caixinha de erro do layout
+	private void setErrorMessages(Map<String, String> errors) {
+		
+		//pegar conjunto com nome dos campos
+		Set<String> fields = errors.keySet();
+		
+		//percorrer conjunto
+		if(fields.contains("name")) {
+			//pega a msg correspondente ao campo name e set no campo lá do labelErrorName
+			labelErrorName.setText(errors.get("name"));
+		}
 		
 	}
 
