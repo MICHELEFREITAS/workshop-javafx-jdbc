@@ -1,35 +1,32 @@
 package model.services;
 
-import java.util.List;
-
 import model.dao.DaoFactory;
 import model.dao.DepartmentDao;
 import model.entities.Department;
 
-public class DepartmentService {
-	
-	private DepartmentDao dao = DaoFactory.createDepartmentDao();
-	
-	public List<Department> findAll(){
-		//vai no banco e busca os departamentos
-		return dao.findAll();		
-	}
-	
-	public void saveOrUpdate(Department obj) {
-		if(obj.getId() == null) {
-			//inserindo um novo department
-			dao.insert(obj);
-		}
-		else {
-			//atualizar
-			dao.update(obj);
-		}
-	}
-	
-	//remover departamento do BD
-	public void remove(Department obj) {
-		dao.deleteById(obj.getId());
-	}
-	
+import java.util.List;
 
+public class DepartmentService {
+    
+    private DepartmentDao departmentDao = DaoFactory.createDepartmentDao();
+    
+    public List<Department> findAll() {
+        return departmentDao.findAll();
+    }
+    
+    public Department findByName(String name) {
+        return departmentDao.findByName(name);
+    }
+    
+    public void savaOrUpdate(Department department) {
+        if (department.getId() == null) {
+            departmentDao.insert(department);
+        } else {
+            departmentDao.update(department);
+        }
+    }
+    
+    public void remove(Department obj) {
+        departmentDao.deleteById(obj.getId());
+    }
 }
